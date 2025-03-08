@@ -5,7 +5,7 @@ import { useGameStore } from "../store/useGameStore";
 import images from "../images";
 
 const PlayerSprite = ({ player, event, spriteRef, gameAreaRef, enemyRef, enemyCaptured, setEnemyDamaged }) => {
-    const { gameMode } = useGameStore();
+    const { gameMode, battleEnd } = useGameStore();
 
     const [spriteSrc, setSpriteSrc] = useState(event?.sprite || images.SPRITE_WALKING_RIGHT);
     const [positionClass, setPositionClass] = useState("left-1/2 transform -translate-x-1/2"); /* Position class to static sprite */
@@ -19,7 +19,7 @@ const PlayerSprite = ({ player, event, spriteRef, gameAreaRef, enemyRef, enemyCa
         firstAppearance,
         setFirstAppearance,
         checkColision
-    } = usePlayerControls({ player, spriteRef, setSpriteSrc, gameAreaRef, enemyRef, enemyCaptured, setEnemyDamaged, gameMode });
+    } = usePlayerControls({ player, spriteRef, setSpriteSrc, gameAreaRef, enemyRef, enemyCaptured, setEnemyDamaged, gameMode, battleEnd });
 
     useEffect(() => {
         handleAnimation(event?.sprite);

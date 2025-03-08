@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from 'uuid';
 import images from "../images";
 
-const usePlayerControls = ({ player, spriteRef, setSpriteSrc, gameAreaRef, enemyRef, enemyCaptured, setEnemyDamaged, gameMode }) => {
+const usePlayerControls = ({ player, spriteRef, setSpriteSrc, gameAreaRef, enemyRef, enemyCaptured, setEnemyDamaged, gameMode, battleEnd }) => {
     const [position, setPosition] = useState({ x: -40, y: 266, gravity: 0 }); /* Position to dinamic sprite */
     const positionRef = useRef({ x: -40, y: 266 }); /* Handle arrow centre related to sprite position */
 
@@ -84,6 +84,11 @@ const usePlayerControls = ({ player, spriteRef, setSpriteSrc, gameAreaRef, enemy
 
     /* Handle Projectile Movement / Change initial position to final position */
     useEffect(() => {
+        if (battleEnd && newProjectile) {
+            setProjectiles((prev) => prev.filter((projectile) => projectile.id !== newProjectile.id));
+            return;
+        }
+
         if (newProjectile) {
             setProjectiles((prev) => [...prev, newProjectile]);
             setTimeout(() => {
@@ -140,9 +145,9 @@ const usePlayerControls = ({ player, spriteRef, setSpriteSrc, gameAreaRef, enemy
         keysPressed.current.delete(event.key);
     };
 
- 
 
     const updatePosition = () => {
+        if (battleEnd) return;
         const speed = player.moral / 8;
         const rect = gameAreaRef.current.getBoundingClientRect();
         const maxX = rect.width - 110;
@@ -273,6 +278,7 @@ const usePlayerControls = ({ player, spriteRef, setSpriteSrc, gameAreaRef, enemy
     };
 
     const handleArrow = (event, arrowPosition = positionRef.current) => {
+        if(battleEnd) return;
         setPrevArrowAngle(arrowAngle);
         const rect = spriteRef.current.getBoundingClientRect();
         const spriteX = rect.left + rect.width / 2;
@@ -296,6 +302,7 @@ const usePlayerControls = ({ player, spriteRef, setSpriteSrc, gameAreaRef, enemy
 
     /* Handle sprite side (mouse side) */
     const handleSpriteSide = (event) => {
+        if(battleEnd) return;
         const rect = spriteRef.current.getBoundingClientRect();
         const spriteX = rect.left + rect.width / 2;
         const mouseX = event.clientX;
@@ -304,7 +311,7 @@ const usePlayerControls = ({ player, spriteRef, setSpriteSrc, gameAreaRef, enemy
 
     /* Check if projectile touch enemy while it is inside game area */
     const checkColision = (latest, projectileId) => {
-        if (!enemyRef.current || !enemyCaptured) return;
+        if (!enemyRef.current || !enemyCaptured || battleEnd) return;
 
         const enemyRectAbsolute = enemyRef.current.getBoundingClientRect();
         const gameRect = gameAreaRef.current.getBoundingClientRect();
