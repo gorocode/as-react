@@ -21,6 +21,8 @@ const MyPlayers = ({ setMessageModal }) => {
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedPlayerId, setSelectedPlayerId] = useState(null);
     const [hoveredPlayer, setHoveredPlayer] = useState(null);
+    const [canUseButtons, setCanUseButtons] = useState(null);
+    const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 
     useEffect(() => {
         const fetchPlayers = async () => {
@@ -70,6 +72,7 @@ const MyPlayers = ({ setMessageModal }) => {
         setModalOpen(false);
         setSelectedPlayerId(null);
     };
+
     return (
         <>
             <ConfirmModal
@@ -98,9 +101,24 @@ const MyPlayers = ({ setMessageModal }) => {
                                 <div
                                     key={player.id}
                                     className={`relative p-3 bg-gray-800 rounded-md text-sm w-[130px] h-[160px] transition-transform duration-300 ${hoveredPlayer === player.id ? 'scale-110' : ''}`}
-                                    onMouseEnter={() => setHoveredPlayer(player.id)}
-                                    onMouseLeave={() => setHoveredPlayer(null)}
-                                    onTouchStart={() => setHoveredPlayer(hoveredPlayer === player.id ? null : player.id)}
+                                    onMouseEnter={() => {
+                                        if (!isTouchDevice) {
+                                            setHoveredPlayer(player.id);
+                                            setCanUseButtons(player.id);
+                                        }
+                                    }}
+                                    onMouseLeave={() => {
+                                        if (!isTouchDevice) {
+                                            setHoveredPlayer(null);
+                                            setCanUseButtons(null);
+                                        }
+                                    }}
+                                    onTouchStart={(event) => {
+                                        if (event.target.tagName !== 'BUTTON') {
+                                            setHoveredPlayer(hoveredPlayer === player.id ? null : player.id);
+                                            setTimeout(() => setCanUseButtons(canUseButtons === player.id ? null : player.id), 300); 
+                                        }
+                                    }}
                                 >
                                     {player.name === null
 
@@ -160,7 +178,9 @@ const MyPlayers = ({ setMessageModal }) => {
                                                 >
                                                     {hoveredPlayer === player.id && player.health > 0 && player.food > 0 && !player.finished && (
                                                         <button
-                                                            onClick={() => handlePlay(player)}
+                                                            onClick={() => {
+                                                                if (canUseButtons === player.id) handlePlay(player);
+                                                            }}
                                                             className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md mb-2 cursor-pointer"
                                                         >
                                                             {language === 'ES' ? 'Jugar' : 'Play'}
@@ -193,7 +213,9 @@ const MyPlayers = ({ setMessageModal }) => {
 
                                                     {hoveredPlayer === player.id && (
                                                         <button
-                                                            onClick={() => openModal(player.id)}
+                                                            onClick={() => {
+                                                                if (canUseButtons === player.id) openModal(player.id);
+                                                            }}
                                                             className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md cursor-pointer"
                                                         >
                                                             {language === 'ES' ? 'Eliminar' : 'Delete'}
